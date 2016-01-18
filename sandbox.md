@@ -3,7 +3,7 @@
 ## console
 ターミナルの出力用。
 
-```console:console
+```console
 $ apt-cache depends auditd
 auditd
   依存: lsb-base
@@ -23,7 +23,7 @@ $
 ## bash
 [cowgill/spamhaus](https://github.com/cowgill/spamhaus)より`spamhaus.sh`を例示。
 
-```bash:spamhaus.sh
+```bash
 #!/bin/bash
 
 # based off the following two scripts
@@ -101,7 +101,7 @@ unlink $FILE
 これはそのまま、pythonソース。pythonとpython3で微妙に表示が異なる。
 
 ### python/python3例
-```python:python
+```python
 import re
 import sys
 import json
@@ -142,7 +142,7 @@ if __name__ == '__main__':
 	sys.exit(main())
 ```
 
-```python3:python3
+```python3
 import re
 import sys
 import json
@@ -200,7 +200,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 http://docs.python.jp/2/library/random.html　より
 pythonコンソール出力例をpyconで修飾した例。
 
-```pycon:pycon
+```pycon
 >>> random.random()        # Random float x, 0.0 <= x < 1.0
 0.37444887175646646
 >>> random.uniform(1, 10)  # Random float x, 1.0 <= x < 10.0
@@ -221,7 +221,7 @@ pythonコンソール出力例をpyconで修飾した例。
 [4, 1, 5]
 ```
 
-## pytb/py3tb
+## pytb
 - pytb
  - Python Traceback (filenames *.pytb)
 - py3tb:
@@ -241,7 +241,7 @@ Traceback (most recent call last):
 IndexError: tuple index out of range
 ```
 
-```py3tb:py3tb
+```py3tb
 Traceback (most recent call last):
   File "<doctest...>", line 10, in <module>
     lumberjack()
@@ -261,7 +261,7 @@ SELECT hoge FROM table_namme WHERE value > 0
 
 ## sqlite3
 
-```sqlite3:sqlite3
+```sqlite3
 $ sqlite3
 SQLite version 3.8.7.1 2014-10-29 13:59:56
 Enter ".help" for usage hints.
@@ -282,7 +282,7 @@ sqlite>
 
 # HTML関連
 ## HTML
-```html:html
+```html
 <html>
 	<head>
 		<title>Hello world</title>
@@ -296,7 +296,7 @@ sqlite>
 ## CSS
 カスケーディング・スタイル・シート用。
 
-```css:css
+```css
 h1, h2, h3, h4 { margin-top: 0.5em; margin-bottom: 0.1em; }
 
 h3 { margin-left: 0.5em; }
@@ -342,7 +342,7 @@ h4:before {
 ## JSON
 一覧にはなかったが、JSONもシンタックスハイライトが有効。
 
-```json:JSON
+```json
 {
 	"text"		: "value",
 	"value"		: 100,
@@ -357,7 +357,7 @@ h4:before {
 ## YAML
 pygmentsの[デモ](http://pygments.org/demo/97004/)より
 
-```yaml:yaml
+```yaml
 time: 120
 title: 'i??i??i?， i≫¨i??i??i?，'
 contestpw: '0000'
@@ -440,7 +440,7 @@ accounts:
 
 ansible playbook形式だとあまり恩恵が見えない。
 
-```yaml:yaml
+```yaml
 ---
 - name: reboot OS
   hosts: server-under-test
