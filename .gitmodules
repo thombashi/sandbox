@@ -1,3 +1,6 @@
 [submodule "PythonExamples"]
 	path = PythonExamples
 	url = https://github.com/thombashi/PythonExamples
+[submodule "sandbox-submodule"]
+	path = sandbox-submodule
+	url = https://github.com/thombashi/sandbox-submodule
