@@ -1,0 +1,3 @@
+[submodule "PythonExamples"]
+	path = PythonExamples
+	url = https://github.com/thombashi/PythonExamples
