@@ -1,0 +1,4 @@
+sandbox
+
+[[image/example.gif]]
+
