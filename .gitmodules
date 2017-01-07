@@ -1,6 +1,0 @@
-[submodule "sandbox-submodule"]
-	path = sandbox-submodule
-	url = https://github.com/thombashi/sandbox-submodule
-[submodule "gtest"]
-	path = gtest
-	url = https://github.com/google/googletest.git
