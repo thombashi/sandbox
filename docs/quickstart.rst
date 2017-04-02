@@ -36,3 +36,6 @@ Add Widget to a HTML
     </html>
 
 This will displayed as follows:
+
+.. image:: ss/quickstart.png
+    :target: https://thombashi.github.io/ghscard/quickstart/
