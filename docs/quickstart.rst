@@ -38,4 +38,6 @@ Add Widget to a HTML
 This will displayed as follows:
 
 .. image:: ss/quickstart.png
+    :width: 300px
+    :alt: Link to an example page
     :target: https://thombashi.github.io/ghscard/quickstart/
