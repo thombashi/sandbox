@@ -1,0 +1,20 @@
+Traffic control features
+------------------------
+
+Trafic shaping target
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Apply traffic shaping rules to specific target:
+
+-  Outgoing/Incoming packets
+-  Certain IP address/network or port
+
+Available parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following parameters can be set to network interfaces.
+
+-  Network bandwidth rate [G/M/K bps]
+-  Network latency [milliseconds]
+-  Packet loss rate [%]
+-  Packet corruption rate [%]
