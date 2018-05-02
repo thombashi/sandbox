@@ -13,5 +13,3 @@ set ARCHIVE_PATH=%DIST_DIR_NAME%/%BIN_NAME%_win_x64
 
 powershell compress-archive -Force %BIN_PATH%.exe %ARCHIVE_PATH%.zip
 echo "----- complete compress -----"
-
-pause
