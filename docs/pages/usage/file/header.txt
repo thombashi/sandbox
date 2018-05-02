@@ -1,0 +1,3 @@
+Create a SQLite database from CSV/Excel/JSON/SQLite/etc. files
+------------------------------------------------------------------
+``sqlitebiter file`` is a subcommand to convert tabular data file(s) to a SQLite database file.
