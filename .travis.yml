@@ -2,8 +2,6 @@ language: python
 
 matrix:
   include:
-    - python: 2.7
-      env: TOXENV=python2.7
     - python: 3.6
       env: TOXENV=python3.6
 
@@ -21,6 +19,7 @@ notifications:
     secure: aXqewqb4rP4MrJoF0+pQjfke5/MW99YDq8qzWMy8DbafRZyqteQ18lt/lBjwI2SmP2ThH/IBsUwLKfug4tSPXZ5bgo9qygqRCSB5K/OfVlRsJ13EIm+QMiiGB2u6sZzemmIMkr7oQNTJK8QfhoAwfGUGcOQ/sVJu2iuLU9J6esJoQPzNdThpEEUhClCrYfECYUN6+eqc89G2QkFkK4wM93Z9HwpMyrLdSh3CqPEGz0pJY4FvzSzMewVkuJf02RyAHWKHPSvoNHa1g0kOzy2NW6ssfSzr7jO/lfCYS81hqsb6FfhYEad1CcjKaKXqQHr4c/ykfuyl/qkzCXH1F37/VJxYUMyk2DMRgLi8tWdgIyFnTTHVQF9uTBBnM3EuAQlgCrOtoCeZLNRGkqQ6dUuADT7J2+znoGunorj/dxZT1cAjroLyv2CmIpJHBTaq+DdDjfmMBxlC41CupwgmVX1/70Vb3PR9BDkODzWgiKn5SQeibIIKG94nKid1/VNzT+Hk7kdnq6iFxfK35nQloacw00Qyo1T05wpg8yIoJUAWl/H7EejVPwmHMqgvQ0Ve5uzW0ztEoUnRetAMZgOGiMeL98sW8dkIo1bNWo+y7APw7M08BvyY1lHiZdTtSnaag1mFm+ydBvI8up9VUdZwCn6sHeQDzDX+WHYbbl4AEvKG+xw=
 
 before_deploy:
+  - apt install fakeroot
   - bash -x build_deb_package.sh
 
 deploy:
