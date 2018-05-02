@@ -1,8 +1,6 @@
 build: false
 environment:
   matrix:
-    - PYTHON: "C:/Python27-x64"
-    - PYTHON: "C:/Python35-x64"
     - PYTHON: "C:/Python36-x64"
 
 init:
@@ -17,7 +15,7 @@ install:
   - "%PYTHON%/Scripts/pip.exe install -r requirements/test_requirements.txt"
 
 test_script:
-  - "%PYTHON%/python.exe invoke_pytest.py"
+  - "echo a"
 
 notifications:
   - provider: Slack
@@ -26,7 +24,7 @@ notifications:
     channel: notifications
 
 before_deploy:
-  - packaging.bat
+  - "packaging.bat"
 
 deploy:
   release: myproduct-v$(appveyor_build_version)
