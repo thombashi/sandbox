@@ -20,11 +20,11 @@ class TableCreator(object):
     def create(self, table_data, index_list):
         con_mem = simplesqlite.connect_sqlite_memdb()
         con_mem.create_table_from_tabledata(table_data)
-        is_rename = self.__require_rename_table(con_mem, table_data.table_name)
+        need_rename = self.__require_rename_table(con_mem, table_data.table_name)
         src_table_name = con_mem.get_table_name_list()[0]
         dst_table_name = src_table_name
 
-        if is_rename:
+        if need_rename:
             dst_table_name = self.__make_unique_table_name(src_table_name)
 
             self.__logger.debug(u"rename table from '{}' to '{}'".format(
@@ -32,14 +32,12 @@ class TableCreator(object):
 
             simplesqlite.copy_table(
                 src_con=con_mem, dst_con=self.__dst_con,
-                src_table_name=src_table_name,
-                dst_table_name=dst_table_name)
+                src_table_name=src_table_name, dst_table_name=dst_table_name)
         else:
             simplesqlite.append_table(
                 src_con=con_mem, dst_con=self.__dst_con, table_name=dst_table_name)
 
-        self.__dst_con.create_index_list(dst_table_name, [
-            simplesqlite.sqlquery.SqlQuery.sanitize_attr(index) for index in index_list])
+        self.__dst_con.create_index_list(dst_table_name, index_list)
 
     def __require_rename_table(self, src_con, src_table_name):
         if not self.__dst_con.has_table(src_table_name):

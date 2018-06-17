@@ -8,10 +8,11 @@ from __future__ import print_function
 
 import pytest
 from click.testing import CliRunner
-from pytablereader import SqliteFileLoader, TableData
+from pytablereader import SqliteFileLoader
 from simplesqlite import SimpleSQLite
 from sqlitebiter._enum import ExitCode
 from sqlitebiter.sqlitebiter import cmd
+from tabledata import TableData
 
 from .common import print_traceback
 
@@ -22,7 +23,7 @@ TEST_TABLE_NAME_B = "test_table_b"
 
 @pytest.fixture
 def con_a0():
-    con = SimpleSQLite("tmp.sqlite", "w")
+    con = SimpleSQLite("tmp_a0.sqlite", "w")
     con.create_table_from_data_matrix(
         table_name=TEST_TABLE_NAME_A,
         attr_name_list=["attr_a", "attr_b"],
@@ -36,7 +37,7 @@ def con_a0():
 
 @pytest.fixture
 def con_a1():
-    con = SimpleSQLite("tmp_dup.sqlite", "w")
+    con = SimpleSQLite("tmp_a1.sqlite", "w")
     con.create_table_from_data_matrix(
         table_name=TEST_TABLE_NAME_A,
         attr_name_list=["attr_a", "attr_b"],
@@ -50,7 +51,7 @@ def con_a1():
 
 @pytest.fixture
 def con_b0():
-    con = SimpleSQLite("tmp.sqlite", "w")
+    con = SimpleSQLite("tmp_b0.sqlite", "w")
     con.create_table_from_data_matrix(
         table_name=TEST_TABLE_NAME_B,
         attr_name_list=["ba", "bb"],
@@ -70,18 +71,14 @@ class Test_sqlitebiter_file_sqlite_merge(object):
 
         with runner.isolated_filesystem():
             result = runner.invoke(
-                cmd,
-                [
-                    "file", con_a0.database_path, con_a1.database_path,
-                    "-o", out_db_path,
-                ])
+                cmd, ["file", con_a0.database_path, con_a1.database_path, "-o", out_db_path])
             print_traceback(result)
             assert result.exit_code == ExitCode.SUCCESS
 
             expected = TableData(
                 table_name=TEST_TABLE_NAME_A,
                 header_list=["attr_a", "attr_b"],
-                record_list=[
+                row_list=[
                     [1, 2],
                     [3, 4],
                     [11, 12],
@@ -96,11 +93,7 @@ class Test_sqlitebiter_file_sqlite_merge(object):
 
         with runner.isolated_filesystem():
             result = runner.invoke(
-                cmd,
-                [
-                    "file", con_a0.database_path, con_b0.database_path,
-                    "-o", out_db_path,
-                ])
+                cmd, ["file", con_a0.database_path, con_b0.database_path, "-o", out_db_path])
             print_traceback(result)
             assert result.exit_code == ExitCode.SUCCESS
 
@@ -108,19 +101,21 @@ class Test_sqlitebiter_file_sqlite_merge(object):
                 TableData(
                     table_name=TEST_TABLE_NAME_A,
                     header_list=["attr_a", "attr_b"],
-                    record_list=[
+                    row_list=[
                         [1, 2],
                         [3, 4],
                     ]),
                 TableData(
                     table_name=TEST_TABLE_NAME_B,
                     header_list=["ba", "bb"],
-                    record_list=[
+                    row_list=[
                         [101, 102],
                         [103, 104],
                     ]),
             ]
             for tabledata in SqliteFileLoader(out_db_path).load():
-                print("[actual]   {}".format(tabledata))
+                print("[actual]\n{}".format(tabledata))
+                for record in tabledata.value_matrix:
+                    print("  {}".format(record))
 
                 assert tabledata in expected_list

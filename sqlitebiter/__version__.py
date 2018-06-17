@@ -4,8 +4,8 @@ from datetime import datetime
 
 
 __author__ = "Tsuyoshi Hombashi"
-__copyright__ = "Copyright {}, {}".format(datetime.now().year, __author__)
+__copyright__ = "Copyright 2016-{}, {}".format(datetime.now().year, __author__)
 __license__ = "MIT License"
-__version__ = "0.13.0"
+__version__ = "0.16.1"
 __maintainer__ = __author__
 __email__ = "tsuyoshi.hombashi@gmail.com"
