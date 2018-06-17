@@ -9,10 +9,8 @@ os:
   - osx
 
 before_install:
-  - sudo apt -qq update
-  - sudo apt install -y fakeroot
-  on:
-    os: linux
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt -qq update ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt install -y fakeroot ; fi
 
 install:
   - pip install tox
