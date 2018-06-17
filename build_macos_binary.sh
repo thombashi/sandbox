@@ -6,11 +6,16 @@ DIST_DIR_NAME="dist"
 DIST_DIR_PATH="./${DIST_DIR_NAME}"
 PKG_NAME="sqlitebiter"
 
+case $(python -c "from __future__ import print_function; import sys; print(sys.version_info[0])") in
+    "3") PIP=pip3 ;;
+    *) PIP=pip ;;
+esac
+
 # initialize
 rm -rf $DIST_DIR_NAME
 
-pip install --upgrade pip
-pip install --upgrade .[build]
+$PIP install --upgrade pip
+$PIP install --upgrade .[build]
 PKG_VERSION=$(python -c "import ${PKG_NAME}; print(${PKG_NAME}.__version__)")
 
 if [ "$PKG_VERSION" = "" ]; then
