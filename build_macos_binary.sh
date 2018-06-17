@@ -9,17 +9,20 @@ PKG_NAME="sqlitebiter"
 python --version
 echo $(python -c "from __future__ import print_function; import sys; print(sys.version_info[0])")
 
-case $(python -c "from __future__ import print_function; import sys; print(sys.version_info[0])") in
-    "3") PIP=pip3 ;;
-    *) PIP=pip ;;
-esac
+if type python3 > /dev/null 2>&1; then
+    PYTHON=python3
+    PIP=pip3
+else
+    PYTHON=python
+    PIP=pip
+fi
 
 # initialize
 rm -rf $DIST_DIR_NAME
 
 $PIP install --upgrade pip
 $PIP install --upgrade .[build]
-PKG_VERSION=$(python -c "import ${PKG_NAME}; print(${PKG_NAME}.__version__)")
+PKG_VERSION=$(${PYTHON} -c "import ${PKG_NAME}; print(${PKG_NAME}.__version__)")
 
 if [ "$PKG_VERSION" = "" ]; then
     echo 'failed to get the package version' 1>&2
