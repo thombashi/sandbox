@@ -11,6 +11,8 @@ os:
 before_install:
   - sudo apt -qq update
   - sudo apt install -y fakeroot
+  on:
+    os: linux
 
 install:
   - pip install tox
