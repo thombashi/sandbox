@@ -6,6 +6,9 @@ DIST_DIR_NAME="dist"
 DIST_DIR_PATH="./${DIST_DIR_NAME}"
 PKG_NAME="sqlitebiter"
 
+python --version
+echo $(python -c "from __future__ import print_function; import sys; print(sys.version_info[0])")
+
 case $(python -c "from __future__ import print_function; import sys; print(sys.version_info[0])") in
     "3") PIP=pip3 ;;
     *) PIP=pip ;;
