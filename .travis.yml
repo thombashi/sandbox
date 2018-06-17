@@ -3,8 +3,11 @@ language: python
 matrix:
   include:
     - os: osx
-      python: 3.5
-      env: TOXENV=python3.5
+      python: 3.4
+      env: TOXENV=python3.4
+    - os: osx
+      python: 3.3
+      env: TOXENV=python3.3
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt -qq update ; fi
