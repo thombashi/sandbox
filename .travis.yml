@@ -11,7 +11,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt install -y fakeroot ; fi
 
 install:
-  - pip install tox
+  - bash .travis/install.sh
 
 script: 
   - echo
