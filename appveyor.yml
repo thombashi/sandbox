@@ -24,7 +24,7 @@ notifications:
     channel: notifications
 
 before_deploy:
-  - "packaging.bat"
+  - "build_win_package.bat"
 
 deploy:
 - provider: GitHub
