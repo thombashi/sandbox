@@ -1,6 +1,0 @@
-[aliases]
-build=sdist bdist_wheel
-test=pytest
-
-[wheel]
-universal = 1
