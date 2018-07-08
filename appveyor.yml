@@ -18,7 +18,7 @@ install:
   - "%PYTHON%/Scripts/pip.exe install -r requirements/build_requirements.txt"
 
 test_script:
-  - "echo a"
+  - "%PYTHON%/python.exe invoke_pytest.py"
 
 notifications:
   - provider: Slack
