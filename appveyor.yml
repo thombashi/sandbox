@@ -3,6 +3,9 @@ environment:
   matrix:
     - PYTHON: "C:/Python36-x64"
 
+configuration:
+  - Release
+
 init:
   - "ECHO %PYTHON%"
   - ps: "ls C:/Python*"
@@ -24,7 +27,6 @@ notifications:
     channel: notifications
 
 before_deploy:
-  - "build_win_package.bat"
   - ps: appveyor PushArtifact dist/sqlitebiter_win_x64.zip
 
 deploy:
