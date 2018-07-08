@@ -41,6 +41,5 @@ deploy:
   file: $DEPLOY_FILE
   on:
     tags: false
-    branch: master
     on:
       condition: "$TOXENV = python3.6"
