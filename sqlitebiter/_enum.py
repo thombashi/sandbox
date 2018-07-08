@@ -8,7 +8,8 @@ from __future__ import absolute_import
 
 
 class Context(object):
-    IS_APPEND_TABLE = "IS_APPEND_TABLE"
+    CREATE_DATABASE = "create_database"
+    CONNECTION = "connection"
     INDEX_LIST = "INDEX_LIST"
     LOG_LEVEL = "LOG_LEVEL"
     VERBOSITY_LEVEL = "VERBOSITY_LEVEL"

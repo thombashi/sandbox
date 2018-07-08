@@ -40,7 +40,7 @@ def load_ipynb_url(url, proxies):
     response = requests.get(url, proxies=proxies)
     response.raise_for_status()
 
-    return nbformat.reads(response.text, as_version=4)
+    return (nbformat.reads(response.text, as_version=4), len(response.content))
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -54,6 +54,7 @@ class JupyterNotebookConverterInterface(object):
 class JupyterNotebookConverterBase(object):
 
     class Attr(object):
+        NOTEBOOK_ID = "source_id"
         CELL_ID = "cell_id"
         KEY = "key"
         LINE_NUMBER = "line_no"
@@ -299,7 +300,8 @@ class CellConverter(JupyterNotebookConverterBase):
         del output_data[output_key]
 
 
-def convert_nb(logger, con, result_counter, nb):
+def convert_nb(logger, con, result_counter, nb, source_id):
+    # TODO: source_id
     CellConverter(logger, con, nb.cells).convert()
     MetaDataConverter(logger, con, nb.metadata).convert()
 

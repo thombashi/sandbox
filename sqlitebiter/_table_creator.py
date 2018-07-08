@@ -1,14 +1,13 @@
-#!/usr/bin/env python
 # encoding: utf-8
 
 """
 .. codeauthor:: Tsuyoshi Hombashi <tsuyoshi.hombashi@gmail.com>
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import simplesqlite
-from sqliteschema import SqliteSchemaExtractor
+from sqliteschema import SQLiteSchemaExtractor
 
 
 class TableCreator(object):
@@ -21,13 +20,13 @@ class TableCreator(object):
         con_mem = simplesqlite.connect_sqlite_memdb()
         con_mem.create_table_from_tabledata(table_data)
         need_rename = self.__require_rename_table(con_mem, table_data.table_name)
-        src_table_name = con_mem.get_table_name_list()[0]
+        src_table_name = con_mem.fetch_table_name_list()[0]
         dst_table_name = src_table_name
 
         if need_rename:
             dst_table_name = self.__make_unique_table_name(src_table_name)
 
-            self.__logger.debug(u"rename table from '{}' to '{}'".format(
+            self.__logger.debug("rename table from '{}' to '{}'".format(
                 src_table_name, dst_table_name))
 
             simplesqlite.copy_table(
@@ -43,28 +42,20 @@ class TableCreator(object):
         if not self.__dst_con.has_table(src_table_name):
             return False
 
-        if (self.__dst_con.get_attr_name_list(src_table_name) !=
-                src_con.get_attr_name_list(src_table_name)):
-            return True
+        lhs = SQLiteSchemaExtractor(self.__dst_con).fetch_table_schema(src_table_name).as_dict()
+        rhs = SQLiteSchemaExtractor(src_con).fetch_table_schema(src_table_name).as_dict()
 
-        con_schema_extractor = SqliteSchemaExtractor(self.__dst_con, verbosity_level=1)
-        con_mem_schema_extractor = SqliteSchemaExtractor(src_con, verbosity_level=1)
-
-        if (con_schema_extractor.get_database_schema() ==
-                con_mem_schema_extractor.get_database_schema()):
-            return False
-
-        return True
+        return lhs != rhs
 
     def __make_unique_table_name(self, table_name_base):
-        exist_table_name_list = self.__dst_con.get_table_name_list()
+        exist_table_name_list = self.__dst_con.fetch_table_name_list()
 
         if table_name_base not in exist_table_name_list:
             return table_name_base
 
         suffix_id = 1
         while True:
-            table_name_candidate = u"{:s}_{:d}".format(table_name_base, suffix_id)
+            table_name_candidate = "{:s}_{:d}".format(table_name_base, suffix_id)
 
             if table_name_candidate not in exist_table_name_list:
                 return table_name_candidate

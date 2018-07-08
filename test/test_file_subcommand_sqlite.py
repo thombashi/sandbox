@@ -10,6 +10,7 @@ import pytest
 from click.testing import CliRunner
 from pytablereader import SqliteFileLoader
 from simplesqlite import SimpleSQLite
+from sqlitebiter._const import SOURCE_INFO_TABLE
 from sqlitebiter._enum import ExitCode
 from sqlitebiter.sqlitebiter import cmd
 from tabledata import TableData
@@ -71,7 +72,7 @@ class Test_sqlitebiter_file_sqlite_merge(object):
 
         with runner.isolated_filesystem():
             result = runner.invoke(
-                cmd, ["file", con_a0.database_path, con_a1.database_path, "-o", out_db_path])
+                cmd, ["-o", out_db_path, "file", con_a0.database_path, con_a1.database_path])
             print_traceback(result)
             assert result.exit_code == ExitCode.SUCCESS
 
@@ -85,6 +86,9 @@ class Test_sqlitebiter_file_sqlite_merge(object):
                     [13, 14],
                 ])
             for tabledata in SqliteFileLoader(out_db_path).load():
+                if tabledata.table_name == SOURCE_INFO_TABLE:
+                    continue
+
                 assert tabledata == expected
 
     def test_normal_multi_table(self, con_a0, con_b0):
@@ -93,7 +97,7 @@ class Test_sqlitebiter_file_sqlite_merge(object):
 
         with runner.isolated_filesystem():
             result = runner.invoke(
-                cmd, ["file", con_a0.database_path, con_b0.database_path, "-o", out_db_path])
+                cmd, ["-o", out_db_path, "file", con_a0.database_path, con_b0.database_path])
             print_traceback(result)
             assert result.exit_code == ExitCode.SUCCESS
 
@@ -114,6 +118,9 @@ class Test_sqlitebiter_file_sqlite_merge(object):
                     ]),
             ]
             for tabledata in SqliteFileLoader(out_db_path).load():
+                if tabledata.table_name == SOURCE_INFO_TABLE:
+                    continue
+
                 print("[actual]\n{}".format(tabledata))
                 for record in tabledata.value_matrix:
                     print("  {}".format(record))

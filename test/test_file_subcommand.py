@@ -14,9 +14,10 @@ import pytest
 import simplesqlite
 from click.testing import CliRunner
 from pytablereader.interface import TableLoader
+from sqlitebiter._const import SOURCE_INFO_TABLE
 from sqlitebiter._enum import ExitCode
 from sqlitebiter.sqlitebiter import cmd
-from sqliteschema import SqliteSchemaExtractor
+from sqliteschema import SQLiteSchemaExtractor
 
 from .common import print_test_result, print_traceback
 from .dataset import *
@@ -41,6 +42,7 @@ class Test_sqlitebiter_file(object):
         [valid_json_single_file, ExitCode.SUCCESS],
         [valid_json_multi_file_1, ExitCode.SUCCESS],
         [valid_json_kv_file, ExitCode.SUCCESS],
+        [valid_jsonlines_file, ExitCode.SUCCESS],
         [valid_csv_file_1_1, ExitCode.SUCCESS],
         [valid_csv_file_2_1, ExitCode.SUCCESS],
         [valid_tsv_file, ExitCode.SUCCESS],
@@ -66,7 +68,7 @@ class Test_sqlitebiter_file(object):
 
         with runner.isolated_filesystem():
             file_path = file_creator()
-            result = runner.invoke(cmd, ["file", file_path, "-o", db_path])
+            result = runner.invoke(cmd, ["-o", db_path, "file", file_path])
             print_traceback(result)
 
             assert result.exit_code == expected, file_path
@@ -84,7 +86,7 @@ class Test_sqlitebiter_file(object):
             file_path = file_creator()
             os.rename(file_path, test_path)
             result = runner.invoke(
-                cmd, ["file", test_path, "--format", file_format, "-o", db_path])
+                cmd, ["-o", db_path, "file", test_path, "--format", file_format])
 
             assert result.exit_code == expected, file_path
 
@@ -96,6 +98,7 @@ class Test_sqlitebiter_file(object):
             file_list = [
                 valid_json_single_file(),
                 valid_json_multi_file_1(),
+                valid_jsonlines_file(),
                 valid_csv_file_1_1(),
                 valid_csv_file_2_1(),
                 valid_tsv_file(),
@@ -107,7 +110,7 @@ class Test_sqlitebiter_file(object):
                 valid_utf16_csv_file(),
             ]
 
-            result = runner.invoke(cmd, ["file"] + file_list + ["-o", db_path])
+            result = runner.invoke(cmd, ["-o", db_path, "file"] + file_list)
 
             assert result.exit_code == ExitCode.SUCCESS
 
@@ -124,7 +127,7 @@ class Test_sqlitebiter_file(object):
 
         with runner.isolated_filesystem():
             file_path = file_creator()
-            result = runner.invoke(cmd, [verbosity_option, "file", file_path, "-o", db_path])
+            result = runner.invoke(cmd, [verbosity_option, "-o", db_path, "file", file_path])
 
             assert result.exit_code == expected, file_path
 
@@ -154,7 +157,7 @@ class Test_sqlitebiter_file(object):
             ]
 
             for file_path in file_list:
-                result = runner.invoke(cmd, ["file", file_path, "-o", db_path])
+                result = runner.invoke(cmd, ["-o", db_path, "file", file_path])
 
                 assert result.exit_code in (ExitCode.FAILED_CONVERT, ExitCode.NO_INPUT), file_path
 
@@ -167,7 +170,7 @@ class Test_sqlitebiter_file(object):
 
         with runner.isolated_filesystem():
             file_path = file_creator()
-            result = runner.invoke(cmd, ["file", file_path, "-o", db_path])
+            result = runner.invoke(cmd, ["-o", db_path, "file", file_path])
 
             assert result.exit_code == expected, file_path
 
@@ -205,7 +208,7 @@ class Test_sqlitebiter_file(object):
                 not_supported_format_file(),
             ]
 
-            result = runner.invoke(cmd, ["file"] + file_list + ["-o", db_path])
+            result = runner.invoke(cmd, ["-o", db_path, "file"] + file_list)
             assert result.exit_code == ExitCode.SUCCESS
 
             con = simplesqlite.SimpleSQLite(db_path, "r")
@@ -217,8 +220,9 @@ class Test_sqlitebiter_file(object):
                 'testtitle_tablename', 'testtitle_html2',
                 'tsv_a',
                 'valid_mdtable_markdown1',
+                SOURCE_INFO_TABLE,
             ]
-            actual_table_list = con.get_table_name_list()
+            actual_table_list = con.fetch_table_name_list()
 
             print_test_result(expected=expected_table_list, actual=actual_table_list)
 
@@ -249,7 +253,10 @@ class Test_sqlitebiter_file(object):
                 "tsv_a": [(1, 4.0, 'tsv0'), (2, 2.1, 'tsv1'), (3, 120.9, 'tsv2')],
                 "valid_mdtable_markdown1": [(1, 123.1, 'a'), (2, 2.2, 'bb'), (3, 3.3, 'ccc')],
             }
-            for table in con.get_table_name_list():
+            for table in con.fetch_table_name_list():
+                if table == SOURCE_INFO_TABLE:
+                    continue
+
                 result = con.select("*", table_name=table)
                 expected_data = expected_data_table.get(table)
                 actual_data = result.fetchall()
@@ -260,7 +267,7 @@ class Test_sqlitebiter_file(object):
                 print("--- table: {} ---".format(table))
                 print_test_result(expected=expected_data, actual=actual_data)
 
-                assert expected_data == actual_data, message
+                assert sorted(expected_data) == sorted(actual_data), message
 
     def test_normal_format_ssv(self):
         db_path = "test_ssv.sqlite"
@@ -268,7 +275,7 @@ class Test_sqlitebiter_file(object):
 
         with runner.isolated_filesystem():
             file_path = valid_ssv_file()
-            result = runner.invoke(cmd, ["file", file_path, "-o", db_path, "--format", "ssv"])
+            result = runner.invoke(cmd, ["-o", db_path, "file", file_path, "--format", "ssv"])
             print_traceback(result)
 
             assert result.exit_code == ExitCode.SUCCESS
@@ -286,10 +293,10 @@ class Test_sqlitebiter_file(object):
         [
             valid_csv_file_3_1, "aa,ac",
             dedent("""\
-                .. table:: valid_csv_3_1 (3 records)
+                .. table:: valid_csv_3_1
 
                     +--------------+---------+-----------+--------+------+-----+
-                    |Attribute name|Data type|Primary key|Not NULL|Unique|Index|
+                    |Attribute Name|Data Type|PRIMARY KEY|NOT NULL|UNIQUE|Index|
                     +==============+=========+===========+========+======+=====+
                     |aa            |REAL     |           |        |      |X    |
                     +--------------+---------+-----------+--------+------+-----+
@@ -307,16 +314,33 @@ class Test_sqlitebiter_file(object):
 
         with runner.isolated_filesystem():
             file_path = file_creator()
-            result = runner.invoke(cmd, ["--index", index_list, "file", file_path, "-o", db_path])
+            result = runner.invoke(cmd, ["-o", db_path, "--index", index_list, "file", file_path])
             print_traceback(result)
 
             assert result.exit_code == ExitCode.SUCCESS
 
-            extractor = SqliteSchemaExtractor(db_path)
+            extractor = SQLiteSchemaExtractor(db_path)
 
             print_test_result(expected=expected, actual=extractor.dumps())
 
-            assert extractor.dumps() == expected
+            assert extractor.fetch_table_schema("valid_csv_3_1").dumps() == expected
+
+    def test_normal_dup_col_csv_file(self):
+        db_path = "test_dup_col.sqlite"
+        runner = CliRunner()
+        expected = dedent("""\
+            _source_info_ (source_id, dir_name, base_name, format, size, mtime)
+            dup_col (A, A_2, A_1)""")
+
+        with runner.isolated_filesystem():
+            result = runner.invoke(cmd, ["-o", db_path, "file", dup_col_csv_file()])
+            print_traceback(result)
+            assert result.exit_code == ExitCode.SUCCESS
+
+            extractor = SQLiteSchemaExtractor(db_path)
+            options = {"output_format": "text", "verbosity_level": 1}
+            print_test_result(expected=expected, actual=extractor.dumps(**options))
+            assert extractor.dumps(**options) == expected
 
     def test_normal_append(self):
         db_path = "test.sqlite"
@@ -327,16 +351,16 @@ class Test_sqlitebiter_file(object):
                 valid_json_multi_file_2_1(),
             ]
             table_name = "multij2"
-            expected_table_list = [table_name]
+            expected_table_list = [table_name, SOURCE_INFO_TABLE]
 
             # first execution without --append option (new) ---
-            result = runner.invoke(cmd, ["file"] + file_list + ["-o", db_path])
+            result = runner.invoke(cmd, ["-o", db_path, "file"] + file_list)
             print_traceback(result)
             assert result.exit_code == ExitCode.SUCCESS
 
             con = simplesqlite.SimpleSQLite(db_path, "r")
 
-            actual_table_list = con.get_table_name_list()
+            actual_table_list = con.fetch_table_name_list()
 
             print_test_result(expected=expected_table_list, actual=actual_table_list)
 
@@ -355,13 +379,13 @@ class Test_sqlitebiter_file(object):
 
             # second execution with --append option ---
             result = runner.invoke(
-                cmd, ["--append", "file"] + file_list + ["-o", db_path])
+                cmd, ["-o", db_path, "--append", "file"] + file_list)
             print_traceback(result)
             assert result.exit_code == ExitCode.SUCCESS
 
             con = simplesqlite.SimpleSQLite(db_path, "r")
 
-            actual_table_list = con.get_table_name_list()
+            actual_table_list = con.fetch_table_name_list()
 
             print_test_result(expected=expected_table_list, actual=actual_table_list)
 
@@ -382,13 +406,13 @@ class Test_sqlitebiter_file(object):
             assert expected_data == actual_data
 
             # third execution without --append option (overwrite) ---
-            result = runner.invoke(cmd, ["file"] + file_list + ["-o", db_path])
+            result = runner.invoke(cmd, ["-o", db_path, "file"] + file_list)
             print_traceback(result)
             assert result.exit_code == ExitCode.SUCCESS
 
             con = simplesqlite.SimpleSQLite(db_path, "r")
 
-            actual_table_list = con.get_table_name_list()
+            actual_table_list = con.fetch_table_name_list()
 
             print_test_result(expected=expected_table_list, actual=actual_table_list)
 
@@ -415,13 +439,13 @@ class Test_sqlitebiter_file(object):
                 valid_json_multi_file_2_2(),
             ]
 
-            result = runner.invoke(cmd, ["file"] + file_list + ["-o", db_path])
+            result = runner.invoke(cmd, ["-o", db_path, "file"] + file_list)
             print_traceback(result)
             assert result.exit_code == ExitCode.SUCCESS
 
             con = simplesqlite.SimpleSQLite(db_path, "r")
-            expected_table_list = ['multij2']
-            actual_table_list = con.get_table_name_list()
+            expected_table_list = ['multij2', SOURCE_INFO_TABLE]
+            actual_table_list = con.fetch_table_name_list()
 
             print_test_result(expected=expected_table_list, actual=actual_table_list)
 
@@ -438,7 +462,10 @@ class Test_sqlitebiter_file(object):
                 ],
             }
 
-            for table in con.get_table_name_list():
+            for table in con.fetch_table_name_list():
+                if table == SOURCE_INFO_TABLE:
+                    continue
+
                 expected_data = expected_data_table.get(table)
                 actual_data = con.select("*", table_name=table).fetchall()
 
@@ -460,13 +487,13 @@ class Test_sqlitebiter_file(object):
                 valid_json_multi_file_2_3(),
             ]
 
-            result = runner.invoke(cmd, ["file"] + file_list + ["-o", db_path])
+            result = runner.invoke(cmd, ["-o", db_path, "file"] + file_list)
             print_traceback(result)
             assert result.exit_code == ExitCode.SUCCESS
 
             con = simplesqlite.SimpleSQLite(db_path, "r")
-            expected_table_list = ['multij2', 'multij2_1']
-            actual_table_list = con.get_table_name_list()
+            expected_table_list = ['multij2', 'multij2_1', SOURCE_INFO_TABLE]
+            actual_table_list = con.fetch_table_name_list()
 
             print_test_result(expected=expected_table_list, actual=actual_table_list)
 
@@ -485,7 +512,10 @@ class Test_sqlitebiter_file(object):
                 ],
             }
 
-            for table in con.get_table_name_list():
+            for table in con.fetch_table_name_list():
+                if table == SOURCE_INFO_TABLE:
+                    continue
+
                 expected_data = expected_data_table.get(table)
                 actual_data = con.select("*", table_name=table).fetchall()
 
@@ -495,7 +525,7 @@ class Test_sqlitebiter_file(object):
                 print("--- table: {} ---".format(table))
                 print_test_result(expected=expected_data, actual=actual_data)
 
-                assert expected_data == actual_data, message
+                assert actual_data == expected_data, message
 
     def test_normal_complex_json(self):
         db_path = "test_complex_json.sqlite"
@@ -503,7 +533,7 @@ class Test_sqlitebiter_file(object):
 
         with runner.isolated_filesystem():
             file_path = valid_complex_json_file()
-            result = runner.invoke(cmd, ["file", file_path, "-o", db_path])
+            result = runner.invoke(cmd, ["-o", db_path, "file", file_path])
             print_traceback(result)
 
             assert result.exit_code == ExitCode.SUCCESS
@@ -511,6 +541,6 @@ class Test_sqlitebiter_file(object):
             con = simplesqlite.SimpleSQLite(db_path, "r")
             expected = set([
                 'ratings', 'screenshots_4', 'screenshots_3', 'screenshots_5', 'screenshots_1',
-                'screenshots_2', 'tags', 'versions', 'root'])
+                'screenshots_2', 'tags', 'versions', 'root', SOURCE_INFO_TABLE])
 
-            assert set(con.get_table_name_list()) == expected
+            assert set(con.fetch_table_name_list()) == expected

@@ -4,7 +4,7 @@
 .. codeauthor:: Tsuyoshi Hombashi <tsuyoshi.hombashi@gmail.com>
 '''
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import re
 
@@ -73,12 +73,12 @@ class DictConverter(object):
     def __write(self, table_data):
         from simplesqlite import SQLiteTableDataSanitizer
 
-        self.__logger.debug(u"loaded tabledata: {}".format(six.text_type(table_data)))
+        self.__logger.debug("loaded tabledata: {}".format(six.text_type(table_data)))
 
         sqlite_tabledata = SQLiteTableDataSanitizer(table_data).normalize()
         self.__table_creator.create(sqlite_tabledata, self.__index_list)
         self.__result_counter.inc_success()
 
         self.__logger.info(get_success_message(
-            self.__verbosity_level, self.__source,
-            self.__schema_extractor.get_table_schema_text(sqlite_tabledata.table_name)))
+            self.__source, self.__schema_extractor, sqlite_tabledata.table_name,
+            self.__verbosity_level))

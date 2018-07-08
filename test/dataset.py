@@ -142,6 +142,19 @@ def valid_json_kv_file():
     return file_path
 
 
+def valid_jsonlines_file():
+    file_path = "valid_jsonlines.ldjson"
+
+    with open(file_path, "w") as f:
+        f.write(dedent("""\
+            {"attr_a": "1", "attr_b": "4", "attr_c": "a"}
+            {"attr_b": "2.1", "attr_c": "bb", "attr_a": "2"}
+            {"attr_b": "120.9", "attr_c": "ccc", "attr_a": "3"}
+        """))
+
+    return file_path
+
+
 def valid_csv_file_1_1():
     file_path = "csv_a.csv"
     with open(file_path, "w") as f:
@@ -188,6 +201,19 @@ def valid_csv_file_3_1():
     with open(file_path, "w") as f:
         f.write("\n".join([
             '"aa","ab","ac"',
+            '4,1,"a"',
+            '2.1,2,"bb"',
+            '120.9,3,"ccc"',
+        ]))
+
+    return file_path
+
+
+def dup_col_csv_file():
+    file_path = "dup_col.csv"
+    with open(file_path, "w") as f:
+        f.write("\n".join([
+            '"A","A","A_1"',
             '4,1,"a"',
             '2.1,2,"bb"',
             '120.9,3,"ccc"',
