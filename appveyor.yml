@@ -29,6 +29,7 @@ before_deploy:
 
 deploy:
 - provider: GitHub
+  tag: $(APPVEYOR_REPO_TAG_NAME)
   description: 'Release description'
   auth_token:
     secure: yCkrIbtWpwkayosMqpLMv0ew4Le1PY0kYBMNlOIbD6jwSRnc5dRhV6n9DAGMqQ0f
