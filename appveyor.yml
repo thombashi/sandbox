@@ -32,7 +32,7 @@ deploy:
   description: 'Release description'
   auth_token:
     secure: yCkrIbtWpwkayosMqpLMv0ew4Le1PY0kYBMNlOIbD6jwSRnc5dRhV6n9DAGMqQ0f
-  draft: false
+  draft: true
   prerelease: true
   on:
     branch: master                 # release from master branch only
