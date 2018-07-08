@@ -32,7 +32,9 @@ deploy:
   description: 'Release description'
   auth_token:
     secure: yCkrIbtWpwkayosMqpLMv0ew4Le1PY0kYBMNlOIbD6jwSRnc5dRhV6n9DAGMqQ0f
-  artifact: dist/sqlitebiter_win_x64.zip
+  artifact:
+      - path: dist/sqlitebiter_win_x64.zip
+        name: sqlitebiter_win_x64
   draft: false
   prerelease: true
   on:
