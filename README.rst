@@ -40,7 +40,7 @@ Usage
 =======
 Create SQLite database from files
 -----------------------------------
-.. image:: docs/gif/usage_example.gif
+.. image:: termtosvg_6u2iyy97.svg
 
 Create SQLite database from URL
 ---------------------------------
@@ -78,7 +78,7 @@ Following is an example that convert HTML table tags within a web page to SQLite
 
 For more information
 ~~~~~~~~~~~~~~~~~~~~~~
-More examples are available at 
+More examples are available at
 http://sqlitebiter.rtfd.io/en/latest/pages/usage/index.html
 
 Installation
