@@ -6,13 +6,16 @@
 
 from __future__ import absolute_import
 
+from enum import Enum
 
-class Context(object):
-    CREATE_DATABASE = "create_database"
-    CONNECTION = "connection"
-    INDEX_LIST = "INDEX_LIST"
-    LOG_LEVEL = "LOG_LEVEL"
-    VERBOSITY_LEVEL = "VERBOSITY_LEVEL"
+
+class Context(Enum):
+    DUP_DATABASE = 1
+    INDEX_LIST = 2
+    LOG_LEVEL = 3
+    OUTPUT_PATH = 4
+    VERBOSITY_LEVEL = 5
+    SYMBOL_REPLACE_VALUE = 6
 
 
 class ExitCode(object):
@@ -21,3 +24,9 @@ class ExitCode(object):
     FAILED_CONVERT = 2
     FAILED_HTTP = 3
     NO_INPUT = 10
+
+
+class DupDatabase(Enum):
+    OVERWRITE = 1
+    APPEND = 2
+    SKIP = 3  # TODO

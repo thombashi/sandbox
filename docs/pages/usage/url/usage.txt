@@ -19,7 +19,7 @@ Following is an example that convert HTML table tags within a web page to SQLite
         [INFO] sqlitebiter url: database path: out.sqlite
 
 :Output:
-    .. code-block:: console
+    .. code-block:: sql
 
         sqlite> .schema
         CREATE TABLE 'Comparison_of_firewalls_Wikipedia_html1' (Firewall TEXT, License TEXT, Costandusagelimits TEXT, OS TEXT);

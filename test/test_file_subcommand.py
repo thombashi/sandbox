@@ -69,7 +69,7 @@ class Test_sqlitebiter_file(object):
         with runner.isolated_filesystem():
             file_path = file_creator()
             result = runner.invoke(cmd, ["-o", db_path, "file", file_path])
-            print_traceback(result)
+            # print_traceback(result)
 
             assert result.exit_code == expected, file_path
 

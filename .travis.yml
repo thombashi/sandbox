@@ -1,29 +1,50 @@
 language: python
 
+cache: pip
+
 matrix:
-  include:
-    - os: osx
-      language: generic
-      env:
-        - TOXENV=python3.6
-        - DEPLOY_FILE='dist/sqlitebiter_macos_*'
+    include:
+        - os: linux
+          python: 2.7
+          sudo: required
+          env:
+              - TOXENV=python2.7
 
-    - os: linux
-      python: 3.6
-      sudo: required
-      env:
-        - TOXENV=python3.6
-        - DEPLOY_FILE='dist/sqlitebiter_*.deb'
+        - os: linux
+          python: 3.4
+          sudo: required
+          env:
+              - TOXENV=python3.4
 
-#before_install:
-#  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt -qq update ; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt install -y fakeroot ; fi
+        - os: linux
+          python: 3.5
+          sudo: required
+          env:
+              - TOXENV=python3.5
+
+        - os: linux
+          python: 3.6
+          sudo: required
+          env:
+              - TOXENV=python3.6
+              - DEPLOY_FILE='dist/sqlitebiter_*.deb'
+
+        - os: linux
+          python: 3.7-dev
+          sudo: required
+          env: TOXENV=python3.7
+
+        - os: osx
+          language: generic
+          env:
+              - TOXENV=python3.6
+              - DEPLOY_FILE='dist/sqlitebiter_macos_*'
 
 install:
-  - bash .travis/install.sh
+    - bash .travis/install.sh
 
-script: 
-  - tox
+script:
+    - tox
 
 notifications:
   slack:

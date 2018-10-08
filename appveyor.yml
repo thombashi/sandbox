@@ -1,25 +1,26 @@
 build: false
 environment:
-  matrix:
-    - PYTHON: "C:/Python36-x64"
+    matrix:
+        - PYTHON: "C:/Python27-x64"
+        - PYTHON: "C:/Python35-x64"
+        - PYTHON: "C:/Python36-x64"
+        - PYTHON: "C:/Python37-x64"
 
 configuration:
-  - Release
+    - Release
 
 init:
-  - "ECHO %PYTHON%"
-  - ps: "ls C:/Python*"
+    - "ECHO %PYTHON%"
+    - ps: "ls C:/Python*"
 
 install:
-  - ps: (new-object net.webclient).DownloadFile('https://bootstrap.pypa.io/get-pip.py', 'C:/get-pip.py')
-  - "%PYTHON%/python.exe C:/get-pip.py"
-  - "%PYTHON%/Scripts/pip.exe --version"
-  - "%PYTHON%/Scripts/pip.exe install -r requirements/requirements.txt"
-  - "%PYTHON%/Scripts/pip.exe install -r requirements/test_requirements.txt"
-  - "%PYTHON%/Scripts/pip.exe install -r requirements/build_requirements.txt"
+    - ps: (new-object net.webclient).DownloadFile('https://bootstrap.pypa.io/get-pip.py', 'C:/get-pip.py')
+    - "%PYTHON%/python.exe C:/get-pip.py"
+    - "%PYTHON%/Scripts/pip.exe --version"
+    - "%PYTHON%/Scripts/pip.exe install .[test]"
 
 test_script:
-  - "%PYTHON%/python.exe invoke_pytest.py"
+    - "%PYTHON%/python.exe invoke_pytest.py"
 
 notifications:
   - provider: Slack
@@ -28,8 +29,9 @@ notifications:
     channel: notifications
 
 before_deploy:
-  - "build_win_package.bat"
-  - ps: appveyor PushArtifact dist/sqlitebiter_win_x64.zip
+    - "%PYTHON%/Scripts/pip.exe install .[excel,gs,mediawiki,sqlite,build]"
+    - "build_win_package.bat"
+    - ps: appveyor PushArtifact dist/sqlitebiter_win_x64.zip
 
 deploy:
 - provider: GitHub

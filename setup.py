@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 
 """
@@ -74,7 +73,7 @@ setuptools.setup(
     long_description=long_description,
     packages=setuptools.find_packages(exclude=['test*']),
     project_urls={
-        "Documentation": "http://{:s}.rtfd.io/".format(MODULE_NAME),
+        "Documentation": "https://{:s}.rtfd.io/".format(MODULE_NAME),
         "Tracker": "{:s}/issues".format(REPOSITORY_URL),
     },
 
@@ -85,15 +84,19 @@ setuptools.setup(
     extras_require={
         "build": build_requires,
         "docs": docs_requires,
-        "release": "releasecmd>=0.0.10",
+        "gs": ["gspread", "oauth2client", "pyOpenSSL"],
+        "mediawiki": ["pypandoc"],
+        "release": ["releasecmd>=0.0.12"],
         "test": tests_requires,
     },
 
     classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Console",
+        "Framework :: Jupyter",
         "Intended Audience :: Information Technology",
         "License :: OSI Approved :: MIT License",
+        "Operating System :: MacOS",
         "Operating System :: Microsoft",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: POSIX",
@@ -104,6 +107,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Topic :: Database",
     ],
     entry_points={

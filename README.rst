@@ -42,6 +42,11 @@ Create SQLite database from files
 -----------------------------------
 .. image:: termtosvg_6u2iyy97.svg
 
+
+.. image:: https://raw.githubusercontent.com/thombashi/sandbox/termtosvg_6u2iyy97.svg
+
++![]()
+
 Create SQLite database from URL
 ---------------------------------
 Following is an example that convert HTML table tags within a web page to SQLite tables.
