@@ -10,5 +10,8 @@ if [ "$TRAVIS_OS_NAME" = "osx" ]; then
     pip3 install .[test]
 else
     pip install setuptools --upgrade
-    pip install .[test]
+
+    if [ "$TOXENV" != "build"]; then
+        pip install .[test]
+    fi
 fi
