@@ -1,9 +1,5 @@
 # encoding: utf-8
 
-"""
-.. codeauthor:: Tsuyoshi Hombashi <tsuyoshi.hombashi@gmail.com>
-"""
-
 import io
 import os.path
 import sys
