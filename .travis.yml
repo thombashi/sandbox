@@ -11,6 +11,7 @@ matrix:
               - TOXENV=python2.7
 
         - os: linux
+          dist: xenial
           python: 3.6
           sudo: required
           env:
