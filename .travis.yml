@@ -52,5 +52,4 @@ deploy:
   file: $DEPLOY_FILE
   on:
     tags: false
-    on:
-      condition: "$TOXENV = build"
+    condition: "$TOXENV = build"
