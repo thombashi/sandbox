@@ -28,6 +28,11 @@ matrix:
           language: generic
           env:
               - TOXENV=python3.6
+
+        - os: osx
+          language: generic
+          env:
+              - TOXENV=build
               - DEPLOY_FILE='dist/sqlitebiter_macos_*'
 
 install:
