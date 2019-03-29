@@ -44,7 +44,7 @@ for:
         - configuration: Release
           PYTHON: "C:/Python27-x64"
     before_deploy:
-        - "%PYTHON%/Scripts/pip.exe install .[gs,mediawiki,build]"
+        - "%PYTHON%/Scripts/pip.exe install .[gs,mediawiki,build] jsonschema==2.6.0"
         - "build_win_package.bat"
         - ps: appveyor PushArtifact dist/sqlitebiter_win_x64.zip
     deploy:
