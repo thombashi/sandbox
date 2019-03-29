@@ -23,6 +23,11 @@ notifications:
       secure: JyTQAtBzpPYiWK3eRTz/U+rvmAKopqIWE19ti4vSL/IRygV3jUVUkwET1VyTlrqOeYfNx3Kfcp7eUmHCHxFCgw==
     channel: notifications
 
+matrix:
+  exclude:
+    - configuration: Release
+      PYTHON: "C:/Python27-x64"
+
 for:
   -
     matrix:
