@@ -11,11 +11,15 @@ from enum import Enum
 
 class Context(Enum):
     DUP_DATABASE = 1
-    INDEX_LIST = 2
-    LOG_LEVEL = 3
-    OUTPUT_PATH = 4
-    VERBOSITY_LEVEL = 5
-    SYMBOL_REPLACE_VALUE = 6
+    CONVERT_CONFIG = 5
+    INDEX_LIST = 10
+    ADD_PRIMARY_KEY_NAME = 15
+    TYPE_INFERENCE = 19
+    TYPE_HINT_HEADER = 20
+    LOG_LEVEL = 30
+    OUTPUT_PATH = 40
+    VERBOSITY_LEVEL = 50
+    SYMBOL_REPLACE_VALUE = 60
 
 
 class ExitCode(object):

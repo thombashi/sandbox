@@ -1,5 +1,9 @@
 # encoding: utf-8
 
+"""
+.. codeauthor:: Tsuyoshi Hombashi <tsuyoshi.hombashi@gmail.com>
+"""
+
 import io
 import os.path
 import sys
@@ -43,11 +47,12 @@ with open(os.path.join(REQUIREMENT_DIR, "requirements.txt")) as f:
 with open(os.path.join(REQUIREMENT_DIR, "test_requirements.txt")) as f:
     tests_requires = [line.strip() for line in f if line.strip()]
 
-with open(os.path.join(REQUIREMENT_DIR, "build_requirements.txt")) as f:
-    build_requires = [line.strip() for line in f if line.strip()]
-
 with open(os.path.join(REQUIREMENT_DIR, "docs_requirements.txt")) as f:
     docs_requires = [line.strip() for line in f if line.strip()]
+
+build_exe_requires = ["pyinstaller>=3.4"]
+build_wheel_requires = ["twine", "wheel"]
+build_requires = build_exe_requires + build_wheel_requires
 
 SETUPTOOLS_REQUIRES = ["setuptools>=38.3.0"]
 PYTEST_RUNNER_REQUIRES = ["pytest-runner"] if need_pytest() else []
@@ -70,19 +75,23 @@ setuptools.setup(
     packages=setuptools.find_packages(exclude=['test*']),
     project_urls={
         "Documentation": "https://{:s}.rtfd.io/".format(MODULE_NAME),
+        "Download": "{:s}/releases".format(REPOSITORY_URL),
+        "Source": REPOSITORY_URL,
         "Tracker": "{:s}/issues".format(REPOSITORY_URL),
     },
 
-    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*',
+    python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
     install_requires=SETUPTOOLS_REQUIRES + install_requires,
     setup_requires=SETUPTOOLS_REQUIRES + PYTEST_RUNNER_REQUIRES,
     tests_require=tests_requires,
     extras_require={
         "build": build_requires,
+        "buildexe": build_exe_requires,
+        "buildwhl": build_wheel_requires,
         "docs": docs_requires,
         "gs": ["gspread", "oauth2client", "pyOpenSSL"],
         "mediawiki": ["pypandoc"],
-        "release": ["releasecmd>=0.0.12"],
+        "release": ["releasecmd>=0.0.18,<0.1.0"],
         "test": tests_requires,
     },
 

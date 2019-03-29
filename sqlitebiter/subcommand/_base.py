@@ -42,7 +42,11 @@ class TableConverter(object):
         logger,
         con,
         symbol_replace_value,
+        add_pri_key_name,
+        convert_configs,
         index_list,
+        is_type_inference,
+        is_type_hint_header,
         verbosity_level,
         format_name=None,
         encoding=None,
@@ -50,7 +54,10 @@ class TableConverter(object):
         self._logger = logger
         self._con = con
         self._symbol_replace_value = symbol_replace_value
+        self._convert_configs = convert_configs
         self._index_list = index_list
+        self._is_type_inference = is_type_inference
+        self._is_type_hint_header = is_type_hint_header
         self._verbosity_level = verbosity_level
         self._format_name = format_name
         self._encoding = encoding
@@ -62,6 +69,7 @@ class TableConverter(object):
         self._table_creator = TableCreator(
             logger=self._logger,
             dst_con=con,
+            add_pri_key_name=add_pri_key_name,
             result_logger=self._result_logger,
             verbosity_level=verbosity_level,
         )
@@ -111,25 +119,26 @@ class TableConverter(object):
             dup_col_handler = DEFAULT_DUP_COL_HANDLER
 
         normalized_table_data = SQLiteTableDataSanitizer(
-            table_data, dup_col_handler=dup_col_handler
+            table_data, dup_col_handler=dup_col_handler, is_type_inference=self._is_type_inference
         ).normalize()
 
         if self._symbol_replace_value is None:
             return normalized_table_data
 
         return TableData(
-            table_name=normalized_table_data.table_name,
-            header_list=[
+            normalized_table_data.table_name,
+            [
                 replace_symbol(
                     replace_unprintable_char(header),
                     self._symbol_replace_value,
                     is_replace_consecutive_chars=True,
                     is_strip=True,
                 )
-                for header in normalized_table_data.header_list
+                for header in normalized_table_data.headers
             ],
-            row_list=normalized_table_data.row_list,
+            normalized_table_data.rows,
             dp_extractor=normalized_table_data.dp_extractor,
+            type_hints=table_data.dp_extractor.column_type_hints,
         )
 
     def write_completion_message(self):

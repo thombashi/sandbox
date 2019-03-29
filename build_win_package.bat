@@ -1,5 +1,7 @@
 @echo off
 
+setlocal
+
 set BIN_NAME=sqlitebiter
 
 echo "----- start build -----"
@@ -10,6 +12,8 @@ echo "----- start compress -----"
 set DIST_DIR_NAME=dist
 set BIN_PATH=%DIST_DIR_NAME%/%BIN_NAME%.exe
 set ARCHIVE_PATH=%DIST_DIR_NAME%/%BIN_NAME%_win_x64.zip
+
+%~dp0%BIN_PATH% --version
 
 echo %ARCHIVE_PATH%
 powershell compress-archive -Force %BIN_PATH% %ARCHIVE_PATH%

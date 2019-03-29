@@ -6,24 +6,34 @@
 
 from __future__ import absolute_import, unicode_literals
 
+from textwrap import dedent
+
+import simplejson as json
 import simplesqlite
+from typepy import String
 
 
 class TableCreator(object):
-    def __init__(self, logger, dst_con, result_logger, verbosity_level):
+    def __init__(self, logger, dst_con, add_pri_key_name, result_logger, verbosity_level):
         self.__logger = logger
         self.__dst_con = dst_con
+        self.__add_pri_key_name = add_pri_key_name
         self.__result_logger = result_logger
         self.__verbosity_level = verbosity_level
 
     def create(self, table_data, index_list, source_info):
         con_mem = simplesqlite.connect_memdb()
-        con_mem.create_table_from_tabledata(table_data)
-        need_rename = self.__require_rename_table(con_mem, table_data.table_name)
-        src_table_name = con_mem.fetch_table_name_list()[0]
+
+        con_mem.create_table_from_tabledata(
+            table_data,
+            primary_key=self.__add_pri_key_name,
+            add_primary_key_column=String(self.__add_pri_key_name).is_type(),
+        )
+
+        src_table_name = con_mem.fetch_table_names()[0]
         dst_table_name = src_table_name
 
-        if need_rename:
+        if self.__require_rename_table(con_mem, table_data.table_name):
             dst_table_name = self.__make_unique_table_name(src_table_name)
 
             self.__logger.debug(
@@ -56,19 +66,36 @@ class TableCreator(object):
         lhs = self.__dst_con.schema_extractor.fetch_table_schema(src_table_name).as_dict()
         rhs = src_con.schema_extractor.fetch_table_schema(src_table_name).as_dict()
 
-        return lhs != rhs
+        if lhs != rhs:
+            self.__logger.debug(
+                dedent(
+                    """\
+                    require rename '{table}' because of src table and dst table has
+                    a different schema with the same table name:
+                    dst-schema={dst_schema}
+                    src-schema={src_schema}
+                    """
+                ).format(
+                    table=src_table_name,
+                    src_schema=json.dumps(lhs, indent=4),
+                    dst_schema=json.dumps(rhs, indent=4),
+                )
+            )
+            return True
+
+        return False
 
     def __make_unique_table_name(self, table_name_base):
-        exist_table_name_list = self.__dst_con.fetch_table_name_list()
+        exist_table_names = self.__dst_con.fetch_table_names()
 
-        if table_name_base not in exist_table_name_list:
+        if table_name_base not in exist_table_names:
             return table_name_base
 
         suffix_id = 1
         while True:
             table_name_candidate = "{:s}_{:d}".format(table_name_base, suffix_id)
 
-            if table_name_candidate not in exist_table_name_list:
+            if table_name_candidate not in exist_table_names:
                 return table_name_candidate
 
             suffix_id += 1

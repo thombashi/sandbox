@@ -9,6 +9,7 @@ from __future__ import absolute_import, unicode_literals
 import os
 import stat
 from copy import deepcopy
+from errno import EBADF, ENAMETOOLONG, ENOENT, ENOTDIR
 
 import msgfy
 import path
@@ -18,6 +19,7 @@ import six
 from .._const import IPYNB_FORMAT_NAME_LIST, TABLE_NOT_FOUND_MSG_FORMAT
 from .._ipynb_converter import is_ipynb_file_path, load_ipynb_file
 from ._base import SourceInfo, TableConverter
+from ._common import TYPE_HINT_FROM_HEADER_RULES
 
 
 def _get_format_type_from_path(file_path):
@@ -32,7 +34,11 @@ class FileConverter(TableConverter):
         logger,
         con,
         symbol_replace_value,
+        add_pri_key_name,
+        convert_configs,
         index_list,
+        is_type_inference,
+        is_type_hint_header,
         verbosity_level,
         format_name,
         encoding,
@@ -40,7 +46,17 @@ class FileConverter(TableConverter):
         follow_symlinks,
     ):
         super(FileConverter, self).__init__(
-            logger, con, symbol_replace_value, index_list, verbosity_level, format_name, encoding
+            logger,
+            con,
+            symbol_replace_value=symbol_replace_value,
+            add_pri_key_name=add_pri_key_name,
+            convert_configs=convert_configs,
+            index_list=index_list,
+            is_type_inference=is_type_inference,
+            is_type_hint_header=is_type_hint_header,
+            verbosity_level=verbosity_level,
+            format_name=format_name,
+            encoding=encoding,
         )
 
         self.__exclude_pattern = exclude_pattern
@@ -59,10 +75,11 @@ class FileConverter(TableConverter):
                 self.SKIP_MSG_FORMAT.format(source=file_path, message="matching an exclude pattern")
             )
             self._result_counter.inc_skip()
-            return False
+            return
 
         logger.debug("converting '{}'".format(file_path))
         success_count = result_counter.success_count
+        fail_count = result_counter.fail_count
         source_info_record_base = self.__get_source_info_base(file_path.realpath())
         source_info_record_base.source_id = self._fetch_next_source_id()
 
@@ -86,6 +103,9 @@ class FileConverter(TableConverter):
         else:
             self.__convert(file_path, source_info_record_base)
 
+        if result_counter.fail_count > fail_count:
+            return
+
         if result_counter.success_count == success_count:
             logger.warn(TABLE_NOT_FOUND_MSG_FORMAT.format(file_path))
 
@@ -95,14 +115,19 @@ class FileConverter(TableConverter):
 
         try:
             loader = ptr.TableFileLoader(
-                file_path, format_name=self._format_name, encoding=self._encoding
+                file_path,
+                format_name=self._format_name,
+                encoding=self._encoding,
+                type_hint_rules=TYPE_HINT_FROM_HEADER_RULES if self._is_type_hint_header else None,
             )
         except ptr.InvalidFilePathError as e:
             logger.debug(msgfy.to_debug_message(e))
             result_counter.inc_fail()
             return
         except ptr.LoaderNotFoundError:
-            logger.debug("loader not found that coincide with '{}'".format(file_path))
+            logger.warn(
+                "not supported file format: ext={}, path={}".format(file_path.ext, file_path)
+            )
             result_counter.inc_fail()
             return
 
@@ -162,9 +187,24 @@ class FileConverter(TableConverter):
             result_counter.inc_fail()
 
     def __is_fifo(self, file_path):
-        return stat.S_ISFIFO(os.stat(file_path).st_mode)
+        try:
+            return stat.S_ISFIFO(os.stat(file_path).st_mode)
+        except OSError as e:
+            if e.errno not in (EBADF, ENAMETOOLONG, ENOENT, ENOTDIR):
+                raise
+
+            return False
+        except ValueError:
+            return False
 
     def __is_file(self, file_path):
+        if not file_path.exists():
+            self._logger.debug(
+                self.SKIP_MSG_FORMAT.format(source=file_path, message="no such file or directory")
+            )
+            self._result_counter.inc_skip()
+            return False
+
         if file_path.islink() and not self.__follow_symlinks:
             self._logger.debug(
                 self.SKIP_MSG_FORMAT.format(source=file_path, message="skip a symlink to a file")

@@ -5,9 +5,8 @@
 .. codeauthor:: Tsuyoshi Hombashi <tsuyoshi.hombashi@gmail.com>
 """
 
-from __future__ import absolute_import, unicode_literals
+from __future__ import absolute_import
 
-import errno
 import os
 import sys
 from textwrap import dedent
@@ -15,6 +14,7 @@ from textwrap import dedent
 import click
 import logbook
 import logbook.more
+import msgfy
 import path
 import pytablereader as ptr
 import simplesqlite as sqlite
@@ -22,7 +22,7 @@ import typepy
 
 from .__version__ import __version__
 from ._common import DEFAULT_DUP_COL_HANDLER
-from ._config import ConfigKey, app_config_manager
+from ._config import ConfigKey, app_config_mgr
 from ._const import IPYNB_FORMAT_NAME_LIST, PROGRAM_NAME
 from ._enum import Context, DupDatabase, ExitCode
 from .subcommand import FileConverter, GoogleSheetsConverter, UrlConverter
@@ -36,10 +36,6 @@ COMMAND_EPILOG = dedent(
     Issue tracker: https://github.com/thombashi/sqlitebiter/issues
     """
 )
-
-logbook.more.ColorizedStderrHandler(
-    level=logbook.DEBUG, format_string="[{record.level_name}] {record.channel}: {record.message}"
-).push_application()
 
 
 class Default(object):
@@ -78,6 +74,22 @@ def make_logger(channel_name, log_level):
     return logger
 
 
+def initialize_log_handler(log_level):
+    from logbook.more import ColorizedStderrHandler
+
+    debug_format_str = (
+        "[{record.level_name}] {record.channel} {record.func_name} "
+        "({record.lineno}): {record.message}"
+    )
+    if log_level == logbook.DEBUG:
+        info_format_str = debug_format_str
+    else:
+        info_format_str = "[{record.level_name}] {record.channel}: {record.message}"
+
+    ColorizedStderrHandler(level=logbook.DEBUG, format_string=debug_format_str).push_application()
+    ColorizedStderrHandler(level=logbook.INFO, format_string=info_format_str).push_application()
+
+
 def finalize(con, converter, is_create_db):
     converter.write_completion_message()
     database_path = con.database_path
@@ -87,6 +99,23 @@ def finalize(con, converter, is_create_db):
         os.remove(database_path)
 
     return converter.get_return_code()
+
+
+def load_convert_config(logger, config_filepath, subcommand):
+    import simplejson as json
+    import io
+
+    if not config_filepath:
+        return {}
+
+    if not os.path.isfile(config_filepath):
+        logger.debug("{} not found".format(config_filepath))
+        return {}
+
+    with io.open(config_filepath, encoding="utf-8") as f:
+        configs = json.load(f)
+
+    return configs.get(subcommand)
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -99,33 +128,83 @@ def finalize(con, converter, is_create_db):
     help="Output path of the SQLite database file. Defaults to '{:s}'.".format(Default.OUTPUT_FILE),
 )
 @click.option(
-    "-a", "--append", "is_append_table", is_flag=True, help="append table(s) to existing database."
+    "-a", "--append", "is_append_table", is_flag=True, help="Append table(s) to existing database."
+)
+@click.option(
+    "--add-primary-key",
+    "add_pri_key_name",
+    metavar="PRIMARY_KEY_NAME",
+    help="Add 'PRIMARY KEY AUTOINCREMENT' column with the specified name.",
+)
+@click.option(
+    "--convert-config",
+    help=dedent(
+        """\
+        [experimental]
+        Configurations for data conversion. The option can be used only for url subcommand.
+        """
+    ),
 )
 @click.option(
     "-i",
     "--index",
     "index_list",
+    metavar="INDEX_ATTR",
     default="",
-    help="comma separated attribute names to create indices.",
+    help="Comma separated attribute names to create indices.",
+)
+@click.option(
+    "--no-type-inference",
+    is_flag=True,
+    help="All of the columns assume as TEXT data type in creating tables.",
+)
+@click.option(
+    "--type-hint-header",
+    "is_type_hint_header",
+    is_flag=True,
+    help=dedent(
+        """\
+        Use headers suffix as type hints.
+        If there are type hints, converting columns by datatype corresponding with type hints.
+        The following suffixes can be recognized as type hints (case insensitive):
+        "text": TEXT datatype.
+        "integer": INTEGER datatype.
+        "real": REAL datatype.
+        """
+    ),
 )
 @click.option("--replace-symbol", "symbol_replace_value", help="Replace symbols in attributes.")
 @click.option("-v", "--verbose", "verbosity_level", count=True)
-@click.option("--debug", "log_level", flag_value=logbook.DEBUG, help="for debug print.")
+@click.option("--debug", "log_level", flag_value=logbook.DEBUG, help="For debug print.")
 @click.option(
     "-q",
     "--quiet",
     "log_level",
     flag_value=QUIET_LOG_LEVEL,
-    help="suppress execution log messages.",
+    help="Suppress execution log messages.",
 )
 @click.pass_context
 def cmd(
-    ctx, output_path, is_append_table, index_list, symbol_replace_value, verbosity_level, log_level
+    ctx,
+    output_path,
+    is_append_table,
+    add_pri_key_name,
+    convert_config,
+    index_list,
+    no_type_inference,
+    is_type_hint_header,
+    symbol_replace_value,
+    verbosity_level,
+    log_level,
 ):
     ctx.obj[Context.OUTPUT_PATH] = output_path
     ctx.obj[Context.SYMBOL_REPLACE_VALUE] = symbol_replace_value
     ctx.obj[Context.DUP_DATABASE] = DupDatabase.APPEND if is_append_table else DupDatabase.OVERWRITE
+    ctx.obj[Context.ADD_PRIMARY_KEY_NAME] = add_pri_key_name
     ctx.obj[Context.INDEX_LIST] = index_list.split(",")
+    ctx.obj[Context.CONVERT_CONFIG] = convert_config
+    ctx.obj[Context.TYPE_INFERENCE] = not no_type_inference
+    ctx.obj[Context.TYPE_HINT_HEADER] = is_type_hint_header
     ctx.obj[Context.VERBOSITY_LEVEL] = verbosity_level
     ctx.obj[Context.LOG_LEVEL] = logbook.INFO if log_level is None else log_level
 
@@ -144,7 +223,7 @@ def cmd(
     "-f",
     "--format",
     "format_name",
-    type=click.Choice(ptr.TableFileLoader.get_format_name_list() + IPYNB_FORMAT_NAME_LIST),
+    type=click.Choice(ptr.TableFileLoader.get_format_names() + IPYNB_FORMAT_NAME_LIST),
     help="Data format to loading (auto-detect from file extensions in default).",
 )
 @click.option(
@@ -160,18 +239,27 @@ def file(ctx, files, recursive, pattern, exclude, follow_symlinks, format_name, 
     file(s) or named pipes to a SQLite database file.
     """
 
+    initialize_log_handler(ctx.obj[Context.LOG_LEVEL])
     logger = make_logger("{:s} file".format(PROGRAM_NAME), ctx.obj[Context.LOG_LEVEL])
 
     if typepy.is_empty_sequence(files):
         logger.error("require at least one file specification.\n\n{}".format(ctx.get_help()))
         sys.exit(ExitCode.NO_INPUT)
 
+    convert_configs = load_convert_config(
+        logger, ctx.obj[Context.CONVERT_CONFIG], subcommand="file"
+    )
+
     con, is_create_db = create_database(ctx.obj[Context.OUTPUT_PATH], ctx.obj[Context.DUP_DATABASE])
     converter = FileConverter(
         logger=logger,
         con=con,
         symbol_replace_value=ctx.obj[Context.SYMBOL_REPLACE_VALUE],
+        add_pri_key_name=ctx.obj[Context.ADD_PRIMARY_KEY_NAME],
+        convert_configs=convert_configs,
         index_list=ctx.obj.get(Context.INDEX_LIST),
+        is_type_inference=ctx.obj[Context.TYPE_INFERENCE],
+        is_type_hint_header=ctx.obj[Context.TYPE_HINT_HEADER],
         verbosity_level=ctx.obj.get(Context.VERBOSITY_LEVEL),
         format_name=format_name,
         encoding=encoding,
@@ -205,7 +293,7 @@ def file(ctx, files, recursive, pattern, exclude, follow_symlinks, format_name, 
     "-f",
     "--format",
     "format_name",
-    type=click.Choice(ptr.TableUrlLoader.get_format_name_list() + IPYNB_FORMAT_NAME_LIST),
+    type=click.Choice(ptr.TableUrlLoader.get_format_names() + IPYNB_FORMAT_NAME_LIST),
     help="Data format to loading (defaults to html).",
 )
 @click.option(
@@ -231,21 +319,34 @@ def url(ctx, url, format_name, encoding, proxy):
     if typepy.is_empty_sequence(url):
         sys.exit(ExitCode.NO_INPUT)
 
+    initialize_log_handler(ctx.obj[Context.LOG_LEVEL])
     logger = make_logger("{:s} url".format(PROGRAM_NAME), ctx.obj[Context.LOG_LEVEL])
 
+    try:
+        app_configs = app_config_mgr.load()
+    except ValueError as e:
+        logger.debug(msgfy.to_debug_message(e))
+        app_configs = {}
+
     if typepy.is_empty_sequence(encoding):
-        encoding = app_config_manager.load().get(ConfigKey.DEFAULT_ENCODING)
+        encoding = app_configs.get(ConfigKey.DEFAULT_ENCODING)
         logger.debug("use default encoding: {}".format(encoding))
 
     if typepy.is_null_string(proxy):
-        proxy = app_config_manager.load().get(ConfigKey.PROXY_SERVER)
+        proxy = app_configs.get(ConfigKey.PROXY_SERVER)
+
+    convert_configs = load_convert_config(logger, ctx.obj[Context.CONVERT_CONFIG], subcommand="url")
 
     con, is_create_db = create_database(ctx.obj[Context.OUTPUT_PATH], ctx.obj[Context.DUP_DATABASE])
     converter = UrlConverter(
         logger=logger,
         con=con,
         symbol_replace_value=ctx.obj[Context.SYMBOL_REPLACE_VALUE],
+        add_pri_key_name=ctx.obj[Context.ADD_PRIMARY_KEY_NAME],
+        convert_configs=convert_configs,
         index_list=ctx.obj.get(Context.INDEX_LIST),
+        is_type_inference=ctx.obj[Context.TYPE_INFERENCE],
+        is_type_hint_header=ctx.obj[Context.TYPE_HINT_HEADER],
         verbosity_level=ctx.obj.get(Context.VERBOSITY_LEVEL),
         format_name=format_name,
         encoding=encoding,
@@ -269,13 +370,22 @@ def gs(ctx, credentials, title):
     TITLE: Title of the Google Sheets to convert.
     """
 
+    initialize_log_handler(ctx.obj[Context.LOG_LEVEL])
     logger = make_logger("{:s} gs".format(PROGRAM_NAME), ctx.obj[Context.LOG_LEVEL])
     con, is_create_db = create_database(ctx.obj[Context.OUTPUT_PATH], ctx.obj[Context.DUP_DATABASE])
+    convert_configs = load_convert_config(
+        logger, ctx.obj[Context.CONVERT_CONFIG], subcommand="file"
+    )
+
     converter = GoogleSheetsConverter(
         logger=logger,
         con=con,
         symbol_replace_value=ctx.obj[Context.SYMBOL_REPLACE_VALUE],
+        add_pri_key_name=ctx.obj[Context.ADD_PRIMARY_KEY_NAME],
+        convert_configs=convert_configs,
         index_list=ctx.obj.get(Context.INDEX_LIST),
+        is_type_inference=ctx.obj[Context.TYPE_INFERENCE],
+        is_type_hint_header=ctx.obj[Context.TYPE_HINT_HEADER],
         verbosity_level=ctx.obj.get(Context.VERBOSITY_LEVEL),
     )
 
@@ -299,15 +409,9 @@ def configure(ctx):
 
     logger = make_logger("{:s} file".format(PROGRAM_NAME), ctx.obj[Context.LOG_LEVEL])
 
-    logger.debug(
-        "{} configuration file existence: {}".format(PROGRAM_NAME, app_config_manager.exists)
-    )
+    logger.debug("{} configuration file existence: {}".format(PROGRAM_NAME, app_config_mgr.exists))
 
-    try:
-        sys.exit(app_config_manager.configure())
-    except KeyboardInterrupt:
-        click.echo()
-        sys.exit(errno.EINTR)
+    sys.exit(app_config_mgr.configure())
 
 
 @cmd.command(epilog=COMMAND_EPILOG)
