@@ -25,8 +25,8 @@ notifications:
 
 matrix:
   exclude:
-    - configuration: Release
-      PYTHON: "C:/Python27-x64"
+      - configuration: Release
+        PYTHON: "C:/Python27-x64"
 
 for:
   -
@@ -35,13 +35,13 @@ for:
         - configuration: Test
 
     install:
-        - ps: (new-object net.webclient).DownloadFile('https://bootstrap.pypa.io/get-pip.py', 'C:/get-pip.py')
-        - "%PYTHON%/python.exe C:/get-pip.py"
-        - "%PYTHON%/Scripts/pip.exe --version"
-        - "%PYTHON%/Scripts/pip.exe install .[test]"
+      - ps: (new-object net.webclient).DownloadFile('https://bootstrap.pypa.io/get-pip.py', 'C:/get-pip.py')
+      - "%PYTHON%/python.exe C:/get-pip.py"
+      - "%PYTHON%/Scripts/pip.exe --version"
+      - "%PYTHON%/Scripts/pip.exe install .[test]"
 
     test_script:
-        - "%PYTHON%/python.exe invoke_pytest.py"
+      - "%PYTHON%/python.exe invoke_pytest.py"
 
   -
     matrix:
