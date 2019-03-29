@@ -7,6 +7,7 @@ INSTALL_DIR_PATH="/usr/bin"
 DIST_DIR_PATH="./${DIST_DIR_NAME}/${INSTALL_DIR_PATH}"
 PKG_NAME="sqlitebiter"
 
+
 # initialize
 rm -rf $DIST_DIR_NAME
 mkdir -p "${DIST_DIR_NAME}/DEBIAN"
@@ -23,10 +24,12 @@ fi
 
 echo $PKG_NAME $PKG_VERSION
 
+
 # build an executable binary file
 pyinstaller cli.py --clean --onefile --distpath $DIST_DIR_PATH --name $PKG_NAME
 
 ${DIST_DIR_PATH}/sqlitebiter --version
+
 
 # build a deb package
 cat << _CONTROL_ > "${DIST_DIR_NAME}/DEBIAN/control"
