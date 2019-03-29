@@ -1,11 +1,11 @@
-@echo off
+@echo on
 
 setlocal
 
 set BIN_NAME=sqlitebiter
 
 echo "----- start build -----"
-%PYTHON%/Scripts/pyinstaller.exe cli.py --onefile --name %BIN_NAME% --clean --noconfirm --specpath build
+%PYTHON%/Scripts/pyinstaller.exe cli.py --onefile --name %BIN_NAME% --clean --noconfirm --additional-hooks-dir=scripts/hooks/hook-jsonschema.py --specpath build
 echo "----- complete build -----"
 
 echo "----- start compress -----"
