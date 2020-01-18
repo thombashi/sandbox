@@ -1,6 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -eu
+
+if [ $UID -ne 0 ]; then
+    echo 'requires superuser privilege' 1>&2
+    exit 13
+fi
 
 ARCHIVE_URL=$(curl -sL https://api.github.com/repos/thombashi/sqlitebiter/releases/latest | jq -r '.assets[].browser_download_url' | \grep deb)
 TEMP_DEB="$(mktemp)"
