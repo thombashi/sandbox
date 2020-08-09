@@ -14,8 +14,8 @@ def _is_travis_ci() -> bool:
 
 
 def main():
-    print("CI: {}".format(_is_ci())
-    print("TRAVIS: {}".format(_is_travis_ci())
+    print("CI: {}".format(_is_ci()))
+    print("TRAVIS: {}".format(_is_travis_ci()))
 
 
 if __name__ == '__main__':
