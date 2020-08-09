@@ -33,7 +33,7 @@ install:
     - bash -x .travis/install.sh
 
 script:
-    - python -x .travis/ci.py
+    - python3 -x .travis/ci.py
     #- bash -x .travis/run_test.sh
 
 notifications:
