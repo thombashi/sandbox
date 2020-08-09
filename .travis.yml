@@ -33,7 +33,8 @@ install:
     - bash -x .travis/install.sh
 
 script:
-    - bash -x .travis/run_test.sh
+    - python -x .travis/ci.py
+    #- bash -x .travis/run_test.sh
 
 notifications:
   slack: $SLACK_TOKEN
