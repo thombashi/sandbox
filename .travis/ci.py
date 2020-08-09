@@ -3,16 +3,19 @@
 import os
 
 
-def main():
+def _is_ci() -> bool:
     CI = os.environ.get("CI")
-    print(CI)
-    if CI:
-        print(CI == "true", CI.strip() == "true")
 
-    TRAVIS = os.environ.get("TRAVIS")
-    print(TRAVIS)
-    if TRAVIS:
-        print(TRAVIS == "true", TRAVIS.strip() == "true")
+    return CI and CI.lower() == "true"
+
+
+def _is_travis_ci() -> bool:
+    return os.environ.get("TRAVIS") == "true"
+
+
+def main():
+    print("CI: {}".format(_is_ci())
+    print("TRAVIS: {}".format(_is_travis_ci())
 
 
 if __name__ == '__main__':
