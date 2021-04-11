@@ -9,6 +9,7 @@ from __future__ import absolute_import, unicode_literals
 from ._clrm import bright, cyan, green
 
 
+
 DEFAULT_DUP_COL_HANDLER = "rename"
 
 
