@@ -28,6 +28,13 @@
 |   3 |  0.00 | bar  | True  | Infinity | 2017-03-03 22:44:55+0900 |
 | -10 | -9.90 |      | False |      NaN | 2017-01-01 00:00:00+0900 |
 
+# kramdown/Jeklly
+
+|w/o style|w/ strike|w/ line through|
+
+|---------|---------|---------------|
+|no       |strike   |line-through   |
+
 ## test a-2
 | int | float | str  | bool  |   mix    |           time           |
 
