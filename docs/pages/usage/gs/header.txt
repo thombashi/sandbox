@@ -1,6 +1,0 @@
-Create a SQLite database from Google Sheets
------------------------------------------------------------
-
-``sqlitebiter gs`` is a subcommand to convert
-`Google Sheets <https://www.google.com/intl/en_us/sheets/about/>`_ to
-a SQLite database file.
